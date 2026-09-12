@@ -17,6 +17,7 @@ let activePointerId = null;
 let currentStroke = null;
 let fingerGesture = null;
 let undoStack = [], redoStack = [];
+let suppressNextClick = false;
 
 const $ = id => document.getElementById(id);
 const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now()+"-"+Math.random());
@@ -112,6 +113,8 @@ function render(){
   const n=getNotebook(), s=getSection(), p=getPage();
   $("notebookList").innerHTML="";
   for(const x of state.notebooks){
+    const row=document.createElement("div");
+    row.className="itemRow";
     const b=document.createElement("button");
     b.className="notebook "+(x.id===notebookId?"active":"");
     b.textContent="📓 "+x.name;
@@ -119,7 +122,15 @@ function render(){
       notebookId=x.id; sectionId=x.sections[0]?.id||null; pageId=x.sections[0]?.pages[0]?.id||null;
       syncIds(); render(); save();
     });
-    $("notebookList").appendChild(b);
+    const del=document.createElement("button");
+    del.className="deleteBtn";
+    del.type="button";
+    del.textContent="×";
+    del.title="Delete notebook";
+    del.setAttribute("aria-label",`Delete notebook ${x.name}`);
+    del.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();deleteNotebookById(x.id);});
+    row.appendChild(b); row.appendChild(del);
+    $("notebookList").appendChild(row);
   }
 
   $("breadcrumbs").textContent = n ? `${n.name} / ${s?.name||""}` : "DeepuNotes";
@@ -127,11 +138,21 @@ function render(){
   $("pageList").innerHTML="";
   if(s){
     for(const x of s.pages){
+      const row=document.createElement("div");
+      row.className="itemRow";
       const b=document.createElement("button");
       b.className="pageItem "+(x.id===pageId?"active":"");
       b.textContent="📄 "+x.title;
       b.addEventListener("click",()=>{ pageId=x.id; syncIds(); render(); save(); });
-      $("pageList").appendChild(b);
+      const del=document.createElement("button");
+      del.className="deleteBtn";
+      del.type="button";
+      del.textContent="×";
+      del.title="Delete page";
+      del.setAttribute("aria-label",`Delete page ${x.title}`);
+      del.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();deletePageById(x.id);});
+      row.appendChild(b); row.appendChild(del);
+      $("pageList").appendChild(row);
     }
   }
 
@@ -292,7 +313,7 @@ function pointerMove(ev){
     // Finger scrolling is implemented by moving the document page itself.
     // The page is inside the browser viewport, so translate the wrap's scrollTop
     // using the nearest scrolling parent.
-    const scroller=$("editor");
+    const scroller=$("canvasWrap");
     const dy=fingerGesture.lastY-ev.clientY;
     const dx=fingerGesture.lastX-ev.clientX;
     scroller.scrollTop += dy;
@@ -307,6 +328,8 @@ async function pointerEnd(ev){
   if((ev.pointerType==="pen" || ev.pointerType==="mouse") && ev.pointerId===activePointerId){
     ev.preventDefault();
     drawing=false; activePointerId=null;
+    suppressNextClick=true;
+    setTimeout(()=>suppressNextClick=false,250);
     try{$("noteCanvas").releasePointerCapture?.(ev.pointerId)}catch(_){}
     currentStroke=null;
     await save();
@@ -319,6 +342,17 @@ canvas.addEventListener("pointermove",pointerMove,{passive:false});
 canvas.addEventListener("pointerup",pointerEnd,{passive:false});
 canvas.addEventListener("pointercancel",pointerEnd,{passive:false});
 canvas.addEventListener("contextmenu",e=>e.preventDefault());
+canvas.addEventListener("selectstart",e=>e.preventDefault());
+canvas.addEventListener("dragstart",e=>e.preventDefault());
+canvas.addEventListener("click",e=>{
+  // Safari/iPadOS may synthesize a click after an Apple Pencil stroke.
+  // Never let that click invoke text selection/navigation.
+  e.preventDefault();
+  e.stopPropagation();
+}, {passive:false});
+
+$("canvasWrap").addEventListener("selectstart",e=>e.preventDefault());
+$("canvasWrap").addEventListener("dragstart",e=>e.preventDefault());
 
 document.querySelectorAll("[data-tool]").forEach(b=>{
   b.addEventListener("click",()=>{
@@ -345,6 +379,41 @@ $("clearPage").onclick=()=>{
   const p=getPage(); if(!p)return;
   if(confirm("Clear this page?")){ pushUndo(); p.strokes=[]; p.texts=[]; renderCanvas(); renderTexts(); save(); }
 };
+
+function deletePageById(id){
+  const s=getSection(); if(!s) return;
+  if(s.pages.length<=1){
+    alert("A section must keep at least one page. Create another page first, then delete this one.");
+    return;
+  }
+  const target=s.pages.find(p=>p.id===id);
+  if(!target) return;
+  if(!confirm(`Delete page "${target.title}"? This cannot be undone.`)) return;
+  pushUndo();
+  const idx=s.pages.findIndex(p=>p.id===id);
+  s.pages.splice(idx,1);
+  pageId=s.pages[Math.max(0,idx-1)].id;
+  syncIds(); render(); save();
+}
+
+function deleteNotebookById(id){
+  if(state.notebooks.length<=1){
+    alert("DeepuNotes must keep at least one notebook. Create another notebook first, then delete this one.");
+    return;
+  }
+  const target=state.notebooks.find(n=>n.id===id);
+  if(!target) return;
+  if(!confirm(`Delete notebook "${target.name}" and all its pages? This cannot be undone.`)) return;
+  pushUndo();
+  const idx=state.notebooks.findIndex(n=>n.id===id);
+  state.notebooks.splice(idx,1);
+  const next=state.notebooks[Math.max(0,idx-1)];
+  notebookId=next.id;
+  sectionId=next.sections[0]?.id||null;
+  pageId=next.sections[0]?.pages[0]?.id||null;
+  syncIds(); normalise(); syncIds(); render(); save();
+}
+
 function dialog(title,initial,cb){
   $("dialogTitle").textContent=title; $("nameInput").value=initial;
   $("nameDialog").showModal();

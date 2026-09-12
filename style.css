@@ -39,13 +39,13 @@ main{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
 .backgroundButtons{display:flex;gap:4px;align-items:center;overflow:auto}
 .bgBtn{font-size:11px;padding:7px 8px;border:1px solid #d5d9df;border-radius:7px;white-space:nowrap}
 .bgBtn.active{background:#111827;color:#fff}
-.canvasWrap{position:relative;flex:1;min-height:0;overflow:auto;background:#cfd3d8;-webkit-overflow-scrolling:touch;touch-action:auto;overscroll-behavior:contain}
+.canvasWrap{position:relative;flex:1;min-height:0;overflow:auto;background:#cfd3d8;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .canvasWrap:before{content:"";display:block;position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(100%,1100px);height:var(--page-height,1400px);background:#fff;box-shadow:0 1px 6px #0002;z-index:0;pointer-events:none}
 .canvasWrap.blank:before{background:#fff}
 .canvasWrap.ruled:before{background-color:#fff;background-image:linear-gradient(#d8e3f1 1px,transparent 1px);background-size:100% 30px}
 .canvasWrap.grid:before{background-color:#fff;background-image:linear-gradient(#e2e5e9 1px,transparent 1px),linear-gradient(90deg,#e2e5e9 1px,transparent 1px);background-size:30px 30px}
 .canvasWrap.dot:before{background-color:#fff;background-image:radial-gradient(#9aa3ad 1px,transparent 1px);background-size:20px 20px}
-#noteCanvas{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(100%,1100px);height:var(--page-height,1400px);z-index:5;display:block;touch-action:none}
+#noteCanvas{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(100%,1100px);height:var(--page-height,1400px);z-index:5;display:block;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;cursor:crosshair}
 #textLayer{position:absolute;left:50%;top:0;transform:translateX(-50%);width:min(100%,1100px);height:var(--page-height,1400px);z-index:7;pointer-events:none}
 .textBox{position:absolute;min-width:120px;border:1px dashed #9aa3ad;background:#ffffffdd;padding:7px;border-radius:5px;pointer-events:auto;outline:0}
 #pencilHint{position:sticky;top:10px;z-index:10;width:max-content;max-width:calc(100% - 30px);margin:10px auto;padding:7px 11px;border-radius:15px;background:#111827dd;color:#fff;font-size:11px;pointer-events:none;opacity:.65}
@@ -72,3 +72,8 @@ body.focusMode #pencilHint{display:none}
   #pagePanel{width:150px;flex-basis:150px}
   .backgroundButtons{max-width:48vw}
 }
+
+.itemRow{display:flex;align-items:stretch;gap:3px;margin:2px 0}
+.itemRow>.notebook,.itemRow>.pageItem{flex:1;min-width:0;margin:0}
+.deleteBtn{width:30px;flex:0 0 30px;border-radius:7px;font-size:21px;line-height:1;color:#9aa3ad;background:transparent}
+.deleteBtn:hover,.deleteBtn:active{background:#fee2e2;color:#b91c1c}
