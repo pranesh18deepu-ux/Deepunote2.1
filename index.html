@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="style.css">
+<title>DeepuNotes</title>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="brand"><span>✎</span><strong>DeepuNotes</strong></div>
+    <button id="newNotebook" class="primary">＋ New Notebook</button>
+    <div class="sideTitle">Notebooks</div>
+    <div id="notebookList"></div>
+    <div class="sideFooter">
+      <button id="exportAll">⇩ Backup</button>
+      <button id="importAll">⇧ Restore</button>
+      <input id="backupInput" type="file" accept=".deepunotes,.json" hidden>
+    </div>
+  </aside>
+
+  <main>
+    <header id="topbar">
+      <button id="sidebarToggle" class="icon" title="Show notebooks">☰</button>
+      <div id="breadcrumbs">DeepuNotes</div>
+      <div class="topActions">
+        <button id="undo" class="tool" title="Undo">↶</button>
+        <button id="redo" class="tool" title="Redo">↷</button>
+        <button id="focusMode" class="tool focusButton" title="Focus / distraction-free writing">⛶ Focus</button>
+        <span id="saveStatus" class="status">Saved locally</span>
+      </div>
+    </header>
+
+    <section id="workspace">
+      <aside id="pagePanel">
+        <div class="panelHead">
+          <div>
+            <div class="panelTitle">Pages</div>
+            <div id="sectionName" class="sectionName">General</div>
+          </div>
+          <button id="newPage" class="smallPrimary" title="New page">＋</button>
+        </div>
+        <div id="pageList"></div>
+      </aside>
+
+      <section id="editor">
+        <div id="emptyState">
+          <div class="emptyIcon">📓</div>
+          <h1>Welcome to DeepuNotes</h1>
+          <p>Create a notebook and start writing with Apple Pencil.</p>
+          <button id="emptyNew" class="primary">Create Notebook</button>
+        </div>
+
+        <div id="pageView" hidden>
+          <div class="pageHeader">
+            <input id="pageTitle" value="Untitled Page" aria-label="Page title">
+            <div class="backgroundButtons" aria-label="Page background">
+              <button data-bg="blank" class="bgBtn active">Blank</button>
+              <button data-bg="ruled" class="bgBtn">Ruled</button>
+              <button data-bg="grid" class="bgBtn">Grid</button>
+              <button data-bg="dot" class="bgBtn">Dot</button>
+            </div>
+          </div>
+
+          <div id="canvasWrap" class="canvasWrap blank">
+            <canvas id="noteCanvas"></canvas>
+            <div id="textLayer"></div>
+            <div id="pencilHint">✎ Apple Pencil: write anywhere on the page</div>
+          </div>
+
+          <div id="toolbar">
+            <button data-tool="pen" class="tool active">✒ Pen</button>
+            <button data-tool="highlighter" class="tool">🖍 Highlighter</button>
+            <button data-tool="eraser" class="tool">⌫ Eraser</button>
+            <button data-tool="text" class="tool">T Text</button>
+            <label class="colorTool">Color <input id="color" type="color" value="#111827"></label>
+            <label class="sizeTool">Size <input id="size" type="range" min="1" max="18" value="3"></label>
+            <button id="clearPage" class="tool danger">Clear</button>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<dialog id="nameDialog">
+  <form method="dialog" id="nameForm">
+    <h3 id="dialogTitle">New Notebook</h3>
+    <input id="nameInput" required maxlength="80" autocomplete="off">
+    <div class="dialogActions">
+      <button value="cancel">Cancel</button>
+      <button id="dialogOK" class="primary" value="default">Create</button>
+    </div>
+  </form>
+</dialog>
+<script src="app.js"></script>
+</body>
+</html>
